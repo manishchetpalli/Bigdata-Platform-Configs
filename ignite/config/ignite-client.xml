@@ -41,9 +41,9 @@
 
 <property name="sqlSchemas">
         <list>
-            <value>TEST1</value>
-            <value>TEST2</value>
-            <value>TEST3</value>
+            <value>SCHEMA1</value>
+            <value>SCHEMA2</value>
+            <value>SCHEMA3</value>
         </list>
 </property>
 
@@ -57,9 +57,9 @@
                     <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder">
                         <property name="addresses">
                             <list>
-                                <value>IP.IP.IP.IP</value>
-                                <value>IP.IP.IP.IP.12</value>
-                                <value>IP.IP.IP.IP.13</value>
+                                <value>HOST_IP_1</value>
+                                <value>HOST_IP_2</value>
+                                <value>HOST_IP_3</value>
                             </list>
                         </property>
                     </bean>
