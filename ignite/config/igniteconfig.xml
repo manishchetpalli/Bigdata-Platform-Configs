@@ -9,12 +9,12 @@
     <bean class="org.apache.ignite.configuration.IgniteConfiguration">
 
 
-<!-- ADD the schema here. -->
+
 <property name="sqlSchemas">
         <list>
-            <value>TEST1</value>
-            <value>TEST2</value>
-            <value>TEST3</value>
+            <value>SCHEMA1</value>
+            <value>SCHEMA2</value>
+            <value>SCHEMA3</value>
         </list>
 </property>
 
@@ -23,14 +23,13 @@
 <!-- Thin client connection configuration. -->
     <property name="clientConnectorConfiguration">
         <bean class="org.apache.ignite.configuration.ClientConnectorConfiguration">
-            <property name="host" value="IP.IP.IP.IP.11"/>
+            <property name="host" value="HOST_IP_1"/>
             <property name="port" value="10800"/>
-            <!-- below is required only when installin 2 nodes on single server. -->
-            <property name="portRange" value="30"/>  
+            <property name="portRange" value="30"/>
         </bean>
     </property>
 
-<!-- below property is used fro persistence -->
+
 <!-- <property name="workDirectory" value="/oracle/ignite/ign02"/> -->
 
 
@@ -48,7 +47,6 @@
     </bean>
   </property>
 
-<!--Node ID -->
  <property name="ConsistentId" value="ign01"/>
 
  <!-- Configure internal thread pool. set this also DataStreamerThreadPoolSize -->
@@ -84,9 +82,9 @@
           <property name="addresses">
             <list>
 
-              <value>IP.IP.IP.IP.11</value>
-              <value>IP.IP.IP.IP.12</value>
-              <value>IP.IP.IP.IP.13</value>
+              <value>HOST_IP_1</value>
+              <value>HOST_IP_2</value>
+              <value>HOST_IP_3</value>
 
             </list>
           </property>
@@ -111,11 +109,11 @@
                 <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
                    <property name="name" value="Default_Region"/>
 
-                     <!-- 1 GB initial size. -->
-                   <property name="initialSize" value="#{1L * 1024 * 1024 * 1024}"/>
+                     <!-- 10 GB initial size. -->
+                   <property name="initialSize" value="#{10L * 1024 * 1024 * 1024}"/>
 
-                    <!-- Setting the size of the default region to 4GB. -->
-                  <property name="maxSize" value="#{4L * 1024 * 1024 * 1024}"/>
+                    <!-- Setting the size of the default region to 60GB. -->
+                  <property name="maxSize" value="#{350L * 1024 * 1024 * 1024}"/>
 
 
 
@@ -129,7 +127,8 @@
 <property name="cacheConfiguration">
    <list>
        <bean id="cache-template-bean" abstract="true" class="org.apache.ignite.configuration.CacheConfiguration">
-        <!-- when you create a template via XML configuration, you must add an asterisk to the name of the template -->
+         <!-- when you create a template via XML configuration,
+                                                                                             you must add an asterisk to the name of the template -->
           <property name="name" value="dlkCache*"/>
           <property name="dataRegionName" value="Default_Region"/>
           <property name="writeSynchronizationMode" value="FULL_ASYNC"/>
