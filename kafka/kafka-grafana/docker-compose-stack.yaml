@@ -1,0 +1,53 @@
+version: '3.7'
+
+networks:
+  frontend:
+    name: kafkagrafananet
+  backend:
+
+services:
+
+  ################################################################
+  # Prometheus 
+  #  - runs on the manager node
+  ################################################################
+  prometheus:
+    image: bitnami/prometheus:latest
+    volumes:
+      - $PWD/config/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "14002:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-lifecycle'
+    deploy:
+      placement:
+        constraints: [node.labels.type == master02]
+    networks:
+      - frontend
+      - backend
+
+  ################################################################
+  # Grafana
+  #  - runs on the manager node
+  ################################################################
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SMTP_ENABLED: ${GF_SMTP_ENABLED}
+      GF_SMTP_HOST: ${GF_SMTP_HOST}
+      GF_SMTP_FROM_ADDRESS: ${GF_SMTP_FROM_ADDRESS}
+    volumes: 
+      - grafana-data:/var/lib/grafana
+      - "./grafana.ini:/etc/grafana/grafana.ini"
+    ports:
+      - "14000:3000"
+    deploy:
+      placement:
+        constraints: [node.labels.type == master01]
+    networks:
+      - frontend
+      - backend
+
+volumes:
+  grafana-data:

@@ -1,0 +1,74 @@
+version: '3.4'
+
+services:
+  es01:
+    image: registry.hub.docker.com/library/elasticsearch:7.9.2
+    hostname: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    deploy:
+      placement:
+        constraints: [node.labels.type == master01]
+    ports:
+      - 9200:9200      
+
+    networks:
+      - elastic
+
+  es02:
+    image: registry.hub.docker.com/library/elasticsearch:7.9.2
+    hostname: es02
+    environment:
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    deploy:
+      placement:
+        constraints: [node.labels.type == master01]
+    ports:
+      - 9201:9200
+    networks:
+      - elastic
+
+  es03:
+    image: registry.hub.docker.com/library/elasticsearch:7.9.2
+    hostname: es03
+    environment:
+      - node.name=es03
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    deploy:
+      placement:
+        constraints: [node.labels.type == master03]
+    ports:
+      - 9202:9200
+    networks:
+      - elastic
+
+  kib01:
+    image: registry.hub.docker.com/library/kibana:7.9.2
+    hostname: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+    deploy:
+      placement:
+        constraints: [node.labels.type == master03]
+
+    networks:
+      - elastic
+
+networks:
+  elastic:
+    driver: overlay
+    internal: true

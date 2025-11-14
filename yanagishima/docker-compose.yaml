@@ -1,0 +1,35 @@
+version: '3.7'
+
+yanagishima:
+    image: yanagishima-20.0:1.0.1
+    #container_name: yanagishima
+    hostname: yanagishima
+    #ports:
+    #  - "19093:8080"
+    volumes:
+      - presto/certs/cacerts:/root/app/cacerts
+    environment:
+      PRESTO_COORDINATOR_URL: http://localhost:8084
+      CATALOG: hive
+      SCHEMA: raw
+    deploy:
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.platform.os == linux]
+  web_nginx_presto:
+    image: nginx:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.labels.type == master01]
+    volumes:
+      - ./config_mounted/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_user_config/.htpasswdadmin:/etc/nginx/.htpasswdadmin
+    ports:
+      - "9095:80"
+    environment:
+      - NGINX_HOST=yanagishima.ril.com
+      - NGINX_PORT=80

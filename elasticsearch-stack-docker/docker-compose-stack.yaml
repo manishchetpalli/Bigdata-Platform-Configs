@@ -1,0 +1,359 @@
+version: '3.4'
+
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
+    env_file:
+      - .env
+    container_name: es01
+    environment:
+      - node.name=es01
+      - node.ml=false
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.routing.allocation.enable=${ALLOCATION_ENABLE}
+      - cluster.routing.rebalance.enable=${REBALANCE_ENABLE}
+      - node.attr.rack_id=rack01
+      # - node.attr.zone=zone1
+      - cluster.routing.allocation.awareness.attributes=rack_id
+      # - cluster.routing.allocation.awareness.force.rack_id.values: rack01,rack02
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - bootstrap.memory_lock=${MEMORY_LOCK}
+      - "ES_JAVA_OPTS=-Xms24g -Xmx24g"
+      - http.max_content_length=${CONTENT_LENGTH}
+      - http.cors.enabled=true
+      - http.cors.allow-credentials=true
+      - http.cors.allow-origin=/https?:.*.abc.com(:[0-9]+)?/
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - xpack.security.authc.api_key.enabled=false
+      - xpack.license.self_generated.type=${LICENSE}
+      - xpack.security.enabled=${SECURITY_ENABLED}
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.keystore.path=$CERTS_DIR/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=$CERTS_DIR/elastic-certificates.p12
+    volumes:
+      - elasticsearch/es01:/usr/share/elasticsearch/data
+      - ./certificates:$CERTS_DIR
+    deploy:
+      resources:
+        limits:
+          cpus: "16"
+        reservations:
+          cpus: "8"
+      placement:
+        constraints: [node.labels.type == master01]
+    ports:
+      - 9200:9200
+
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
+    container_name: es02
+    environment:
+      - node.name=es02
+      - node.ml=false
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.routing.allocation.enable=${ALLOCATION_ENABLE}
+      - cluster.routing.rebalance.enable=${REBALANCE_ENABLE}
+      - node.attr.rack_id=rack02
+      - cluster.routing.allocation.awareness.attributes=rack_id
+      - discovery.seed_hosts=es01,es03
+      - bootstrap.memory_lock=${MEMORY_LOCK}
+      - cluster.initial_master_nodes=es01,es02,es03
+      - "ES_JAVA_OPTS=-Xms24g -Xmx24g"
+      - http.max_content_length=${CONTENT_LENGTH}
+      - http.cors.enabled=true
+      - http.cors.allow-credentials=true
+      - http.cors.allow-origin=/https?:.*.abc.com(:[0-9]+)?/
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - xpack.security.authc.api_key.enabled=false
+      - xpack.license.self_generated.type=${LICENSE}
+      - xpack.security.enabled=${SECURITY_ENABLED}
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.keystore.path=$CERTS_DIR/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=$CERTS_DIR/elastic-certificates.p12
+    volumes:
+      - elasticsearch/es02:/usr/share/elasticsearch/data
+      - elk_cluster/certificates:$CERTS_DIR
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+        reservations:
+          cpus: "4"
+      placement:
+        constraints: [node.labels.type == worker04]
+    ports:
+      - 9204:9200
+
+  es03:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
+    container_name: es03
+    environment:
+      - node.name=es03
+      - node.ml=false
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.routing.allocation.enable=${ALLOCATION_ENABLE}
+      - cluster.routing.rebalance.enable=${REBALANCE_ENABLE}
+      - node.attr.rack_id=rack01
+      - cluster.routing.allocation.awareness.attributes=rack_id
+      - discovery.seed_hosts=es01,es02
+      - bootstrap.memory_lock=${MEMORY_LOCK}
+      - cluster.initial_master_nodes=es01,es02,es03
+      - "ES_JAVA_OPTS=-Xms24g -Xmx24g"
+      - http.max_content_length=${CONTENT_LENGTH}
+      - http.cors.enabled=true
+      - http.cors.allow-credentials=true
+      - http.cors.allow-origin=/https?:.*.abc.com(:[0-9]+)?/
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - xpack.security.authc.api_key.enabled=false
+      - xpack.license.self_generated.type=${LICENSE}
+      - xpack.security.enabled=${SECURITY_ENABLED}
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.keystore.path=$CERTS_DIR/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=$CERTS_DIR/elastic-certificates.p12
+    volumes:
+      - /data/hdfs03/elasticsearch/es03:/usr/share/elasticsearch/data
+      - elk_cluster/certificates:$CERTS_DIR
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+        reservations:
+          cpus: "4"
+      placement:
+        constraints: [node.labels.type == worker05]
+    ports:
+      - 9203:9200
+
+  es04:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
+    container_name: es04
+    environment:
+      - node.name=es04
+      - node.ml=false
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.routing.allocation.enable=${ALLOCATION_ENABLE}
+      - cluster.routing.rebalance.enable=${REBALANCE_ENABLE}
+      - node.attr.rack_id=rack02
+      - cluster.routing.allocation.awareness.attributes=rack_id
+      - node.master=true
+      - node.data=true
+      - node.voting_only=true
+      - discovery.seed_hosts=es01,es02,es03
+      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - bootstrap.memory_lock=${MEMORY_LOCK}
+      - "ES_JAVA_OPTS=-Xms24g -Xmx24g"
+      - http.max_content_length=${CONTENT_LENGTH}
+      - http.cors.enabled=true
+      - http.cors.allow-credentials=true
+      - http.cors.allow-origin=/https?:.*.abc.com(:[0-9]+)?/
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - xpack.security.authc.api_key.enabled=false
+      - xpack.license.self_generated.type=${LICENSE}
+      - xpack.security.enabled=${SECURITY_ENABLED}
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.keystore.path=$CERTS_DIR/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=$CERTS_DIR/elastic-certificates.p12
+    volumes:
+      - /data/hdfs03/elasticsearch/es04:/usr/share/elasticsearch/data
+      - /root/elk/elk-stack-docker/certificates:$CERTS_DIR
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+        reservations:
+          cpus: "4"
+      placement:
+        constraints: [node.labels.type == master02]
+
+  es05:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
+    env_file:
+      - .env
+    container_name: es05
+    environment:
+      - node.name=es05
+      - node.ml=false
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.routing.allocation.enable=${ALLOCATION_ENABLE}
+      - cluster.routing.rebalance.enable=${REBALANCE_ENABLE}
+      - node.attr.rack_id=rack01
+      # - cluster.routing.allocation.awareness.attributes=rack_id
+      - node.master=true
+      - node.data=true
+      - node.voting_only=true
+      - discovery.seed_hosts=es01,es02,es03
+      # - cluster.initial_master_nodes=es01,es02,es03
+      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - bootstrap.memory_lock=${MEMORY_LOCK}
+      - "ES_JAVA_OPTS=-Xms24g -Xmx24g"
+      - http.max_content_length=${CONTENT_LENGTH}
+      - http.cors.enabled=true
+      - http.cors.allow-credentials=true
+      - http.cors.allow-origin=/https?:.*.abc.com(:[0-9]+)?/
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - xpack.security.authc.api_key.enabled=false
+      - xpack.license.self_generated.type=${LICENSE}
+      - xpack.security.enabled=${SECURITY_ENABLED}
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.keystore.path=$CERTS_DIR/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=$CERTS_DIR/elastic-certificates.p12
+    volumes:
+      - /data/hdfs04/elasticsearch/es05:/usr/share/elasticsearch/data
+      - elk_cluster/certificates:$CERTS_DIR
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+        reservations:
+          cpus: "4"
+      placement:
+        constraints: [node.labels.type == worker06]
+
+  es06:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
+    container_name: es06
+    environment:
+      - node.name=es06
+      - node.ml=false
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.routing.allocation.enable=${ALLOCATION_ENABLE}
+      - cluster.routing.rebalance.enable=${REBALANCE_ENABLE}
+      - node.attr.rack_id=rack02
+      - cluster.routing.allocation.awareness.attributes=rack_id
+      - node.master=true
+      - node.data=true
+      - node.voting_only=true
+      - discovery.seed_hosts=es01,es02,es03
+      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - bootstrap.memory_lock=${MEMORY_LOCK}
+      - "ES_JAVA_OPTS=-Xms24g -Xmx24g"
+      - http.max_content_length=${CONTENT_LENGTH}
+      - http.cors.enabled=true
+      - http.cors.allow-credentials=true
+      - http.cors.allow-origin=/https?:.*.abc.com(:[0-9]+)?/
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - xpack.security.authc.api_key.enabled=false
+      - xpack.license.self_generated.type=${LICENSE}
+      - xpack.security.enabled=${SECURITY_ENABLED}
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.keystore.path=$CERTS_DIR/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=$CERTS_DIR/elastic-certificates.p12
+    volumes:
+      - /data/hdfs04/elasticsearch/es06:/usr/share/elasticsearch/data
+      - /root/elk/elk-stack-docker/certificates:$CERTS_DIR
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+        reservations:
+          cpus: "4"
+      placement:
+        constraints: [node.labels.type == master02]
+
+  es07:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
+    environment:
+      - node.name=es07
+      - node.ml=false
+      - node.ingest=false
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.routing.allocation.enable=${ALLOCATION_ENABLE}
+      - cluster.routing.rebalance.enable=${REBALANCE_ENABLE}
+      - node.attr.rack_id=rack03
+      - cluster.routing.allocation.awareness.attributes=rack_id
+      - node.master=true
+      - node.data=false
+      - node.voting_only=true
+      - discovery.seed_hosts=es01,es02,es03
+      - bootstrap.memory_lock=${MEMORY_LOCK}
+      - "ES_JAVA_OPTS=-Xms24g -Xmx24g"
+      - http.max_content_length=${CONTENT_LENGTH}
+      - http.cors.enabled=true
+      - http.cors.allow-credentials=true
+      - http.cors.allow-origin=/https?:.*.abc.com(:[0-9]+)?/
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - xpack.security.authc.api_key.enabled=false
+      - xpack.license.self_generated.type=${LICENSE}
+      - xpack.security.enabled=${SECURITY_ENABLED}
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.keystore.path=$CERTS_DIR/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=$CERTS_DIR/elastic-certificates.p12
+    volumes:
+      - /data2/hdfs05/elasticsearch/es07:/usr/share/elasticsearch/data
+      - /root/elk/elk-stack-docker/certificates:$CERTS_DIR
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+        reservations:
+          cpus: "4"
+      placement:
+        constraints: [node.labels.type == master03]
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:${VERSION}
+    env_file:
+      - .env
+    container_name: kib01
+    #depends_on: {"es01": {"condition": "service_healthy"}}
+    ports:
+      - 5601:5601
+    environment:
+      SERVERNAME: localhost1
+      # ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+      ELASTICSEARCH_USERNAME: kibana
+      ELASTICSEARCH_PASSWORD: kibana#123
+    volumes:
+      - /data/hdfs05/kibana/kib01:/usr/share/kibana/data
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 20s
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.labels.type == master01]
+
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - elk_cluster/nginx-config/nginx.conf:/etc/nginx/nginx.conf
+      - shared/logging/es_nginx:/home
+    ports:
+      - 9090:80
+    environment:
+      - "key=value7"
+      - "TZ=Asia/Kolkata"
+    deploy:
+      replicas: 4
+      update_config:
+        parallelism: 1
+        delay: 15s
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.labels.nginx_allocation == yes]
+        # constraints: [node.labels.type == master01]
+
+volumes:
+  certs:
+    driver: local
